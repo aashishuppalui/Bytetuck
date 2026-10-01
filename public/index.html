@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bytetuck: compress any PDF to the exact size you need</title>
+<meta name="description" content="Compress a PDF to 4 MB, 2 MB or any size you choose. Works even on files that are already compressed. Free, no signup.">
+<style>
+:root{--bg:#faf8f4;--card:#fff;--text:#1d1d1b;--muted:#66665f;--accent:#d9541e;--line:#e4e1da;--ok:#1f7a4d;--bad:#b3261e;--soft:#f3efe8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151514;--card:#212120;--text:#f0efea;--muted:#a3a29b;--accent:#f07a48;--line:#3a3936;--ok:#5cc28c;--bad:#f2857d;--soft:#1c1c1b}}
+:root[data-theme="dark"]{--bg:#151514;--card:#212120;--text:#f0efea;--muted:#a3a29b;--accent:#f07a48;--line:#3a3936;--ok:#5cc28c;--bad:#f2857d;--soft:#1c1c1b}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+.logo{font-weight:800;font-size:1.2rem}.logo span{color:var(--accent)}
+nav a{color:var(--muted);text-decoration:none;margin-left:18px;font-size:.95rem}
+.hero{text-align:center;padding:36px 0 28px}
+h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin:0 0 12px;letter-spacing:-.02em}
+.hero p{color:var(--muted);font-size:1.1rem;max-width:560px;margin:0 auto}
+.tool{max-width:600px;margin:28px auto 0;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;text-align:left;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+#drop{border:2px dashed var(--line);border-radius:14px;padding:34px 14px;text-align:center;cursor:pointer;transition:.15s}
+#drop.over,#drop:hover{border-color:var(--accent);background:var(--soft)}
+#drop b{color:var(--accent)}
+.row{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+select,input[type=number]{padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font-size:1rem}
+input[type=number]{width:80px}
+button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:12px 20px;font-size:1rem;font-weight:700;cursor:pointer}
+button.ghost{background:none;color:var(--bad);border:1px solid var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+.consent{font-size:.83rem;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:14px;display:none}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+#status{color:var(--muted);font-size:.92rem;margin-top:10px;min-height:1.3em}
+#result{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+.note{font-size:.8rem;color:var(--muted)}
+section{padding:44px 0}
+h2{font-size:1.6rem;margin:0 0 18px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.box b{display:block;margin-bottom:4px}.box span{color:var(--muted);font-size:.93rem}
+.num{display:inline-block;background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;line-height:26px;font-weight:700;margin-bottom:8px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:600}details p{color:var(--muted);margin:10px 0 0}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:.85rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><div class="logo">Byte<span>tuck</span></div><div><a href="#how">How it works</a><a href="#privacy">Privacy</a><a href="#faq">FAQ</a></div></nav>
+
+  <header class="hero">
+    <h1>Get your PDF down to the <span style="color:var(--accent)">exact size</span> you need</h1>
+    <p>Stuck on a 4 MB upload limit? Choose your target and compress, even if the file was already compressed. Free, no signup.</p>
+
+    <div class="tool" id="app">
+      <div id="drop"><b>Choose a PDF</b> or drop it here<div id="fname" class="note" style="margin-top:6px"></div></div>
+      <input id="file" type="file" accept="application/pdf" hidden>
+      <div class="row">
+        <label for="preset">Target size</label>
+        <select id="preset"><option value="4">4 MB</option><option value="2">2 MB</option><option value="1">1 MB</option><option value="0.5">500 KB</option><option value="custom">Custom…</option></select>
+        <input id="custom" type="number" min="0.1" step="0.1" value="4" hidden> <span id="cu" class="note" hidden>MB</span>
+      </div>
+      <label class="consent row"><input type="checkbox" id="consent"> <span>I agree that my file is stored in private storage for <b>7 days</b> and then permanently deleted. I can delete it sooner at any time.</span></label>
+      <div class="row"><button id="go" disabled>Compress PDF</button></div>
+      <div class="bar" id="bar"><i id="fill"></i></div>
+      <div id="status" role="status"></div>
+      <div id="result">
+        <div id="summary"></div>
+        <div class="row"><button id="dl">Download compressed PDF</button><button class="ghost" id="del" hidden>Delete my files now</button></div>
+        <div id="saved" class="note" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:12px">Compression happens in your browser, so your file isn't sent anywhere until you consent above. Text may become non-selectable after compression.</p>
+  </header>
+
+  <section id="how"><h2>How it works</h2>
+    <div class="grid">
+      <div class="box"><div class="num">1</div><b>Upload</b><span>Pick your PDF and the size you need to hit.</span></div>
+      <div class="box"><div class="num">2</div><b>We shrink it</b><span>Quality is lowered step by step, stopping at the best version that fits.</span></div>
+      <div class="box"><div class="num">3</div><b>Download</b><span>Save the result. Stored copies auto-delete after 7 days.</span></div>
+    </div>
+  </section>
+
+  <section id="privacy"><h2>Your files, your control</h2>
+    <div class="grid">
+      <div class="box"><b>Private storage</b><span>Stored files are never public and have unguessable names.</span></div>
+      <div class="box"><b>Auto-deleted</b><span>Every file is erased automatically after 7 days.</span></div>
+      <div class="box"><b>Delete anytime</b><span>One click removes your files immediately after compressing.</span></div>
+    </div>
+    <p class="note" style="text-align:center;margin-top:14px">Data requests: <b>[YOUR CONTACT EMAIL]</b></p>
+  </section>
+
+  <section id="faq"><h2>FAQ</h2>
+    <details><summary>Why is the result's text not selectable?</summary><p>To shrink already-compressed files, pages are rebuilt as optimized images. That is what makes big reductions possible.</p></details>
+    <details><summary>What if it can't reach my target?</summary><p>You'll get the smallest version possible, clearly marked, so you can choose a slightly larger target.</p></details>
+    <details><summary>Is there a file size limit?</summary><p>Files up to 100 MB. Very long documents take longer because every page is processed.</p></details>
+    <details><summary>Does it work on a phone?</summary><p>Yes, but large PDFs compress faster on a laptop.</p></details>
+  </section>
+  <footer>© Bytetuck · <a href="#privacy" style="color:inherit">Privacy</a></footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const $ = id => document.getElementById(id);
+const LADDER = [[150,.8],[130,.7],[110,.65],[96,.55],[84,.5],[72,.45],[60,.4],[50,.35],[40,.3],[32,.25]];
+const mb = b => b >= 1048576 ? (b/1048576).toFixed(2) + " MB" : Math.round(b/1024) + " KB";
+const tick = () => new Promise(r => setTimeout(r));
+let pdfFile = null, outBlob = null, outName = "compressed.pdf", storedUrls = [], blobClient = null;
+
+// Storage SDK: only available on the deployed site; the page works without it (nothing is stored).
+import("https://esm.sh/@vercel/blob/client").then(m => { blobClient = m; }).catch(() => {});
+
+function setFile(f){
+  if(!f || f.type !== "application/pdf"){ $("status").textContent = "Please choose a PDF file."; return; }
+  pdfFile = f; $("fname").textContent = f.name + " · " + mb(f.size);
+  $("result").style.display = "none"; $("status").textContent = ""; sync();
+}
+const sync = () => { $("go").disabled = !(pdfFile && $("consent").checked); };
+$("consent").onchange = sync;
+$("drop").onclick = () => $("file").click();
+$("file").onchange = e => setFile(e.target.files[0]);
+$("drop").ondragover = e => { e.preventDefault(); $("drop").classList.add("over"); };
+$("drop").ondragleave = () => $("drop").classList.remove("over");
+$("drop").ondrop = e => { e.preventDefault(); $("drop").classList.remove("over"); setFile(e.dataTransfer.files[0]); };
+$("preset").onchange = () => { const c = $("preset").value === "custom"; $("custom").hidden = $("cu").hidden = !c; };
+const targetBytes = () => (parseFloat($("preset").value === "custom" ? $("custom").value : $("preset").value) || 4) * 1048576;
+
+async function build(pdf, dpi, q, onPage){
+  let doc = null;
+  for(let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i), base = page.getViewport({scale:1}), vp = page.getViewport({scale: dpi/72});
+    const c = document.createElement("canvas"); c.width = Math.max(1, ~~vp.width); c.height = Math.max(1, ~~vp.height);
+    const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext: ctx, viewport: vp}).promise;
+    const img = c.toDataURL("image/jpeg", q), w = base.width, h = base.height, o = w > h ? "l" : "p";
+    if(!doc) doc = new jspdf.jsPDF({orientation:o, unit:"pt", format:[w,h], compress:true}); else doc.addPage([w,h], o);
+    doc.addImage(img, "JPEG", 0, 0, w, h, undefined, "FAST");
+    c.width = c.height = 0; page.cleanup(); onPage(i, pdf.numPages); await tick();
+  }
+  return doc.output("blob");
+}
+
+async function store(orig, out){
+  if(!blobClient) return [];
+  const o = {access:"private", handleUploadUrl:"/api/upload", contentType:"application/pdf"}, t = Date.now();
+  const a = await blobClient.upload(`uploads/${t}-original.pdf`, orig, o);
+  const b = await blobClient.upload(`uploads/${t}-compressed.pdf`, out, o);
+  return [a.url, b.url];
+}
+
+$("go").onclick = async () => {
+  const limit = targetBytes(); storedUrls = [];
+  $("go").disabled = true; $("result").style.display = "none"; $("bar").style.display = "block";
+  try{
+    const pdf = await pdfjsLib.getDocument({data: new Uint8Array(await pdfFile.arrayBuffer())}).promise;
+    let best = null, n = 0;
+    for(const [dpi,q] of LADDER){
+      n++;
+      const blob = await build(pdf, dpi, q, (p,t) => { $("fill").style.width = (p/t*100) + "%"; $("status").textContent = `Pass ${n}/${LADDER.length} · page ${p} of ${t}`; });
+      if(!best || blob.size < best.size) best = blob;
+      if(blob.size <= limit){ best = blob; break; }
+    }
+    outBlob = best; outName = pdfFile.name.replace(/\.pdf$/i,"") + "-compressed.pdf";
+    const ok = best.size <= limit;
+    $("summary").innerHTML = `${mb(pdfFile.size)} → <b>${mb(best.size)}</b> ` + (ok ? `<span class="ok">✓ fits ${mb(limit)}</span>` : `<span class="bad">smallest possible; couldn't reach ${mb(limit)}</span>`);
+    $("result").style.display = "block"; $("status").textContent = "Saving a private copy…"; $("saved").textContent = "";
+    try{
+      storedUrls = await store(pdfFile, best);
+      $("saved").textContent = storedUrls.length ? "Stored privately. Auto-deletes in 7 days." : "Demo mode: nothing was stored.";
+      $("del").hidden = !storedUrls.length;
+    }catch(e){ $("saved").textContent = "Couldn't save a private copy, but your compressed file is ready."; }
+    $("status").textContent = "";
+  }catch(err){
+    $("status").innerHTML = `<span class="bad">Failed: ${err.message || err}</span> (password-protected or damaged PDFs can't be processed)`;
+  }
+  $("bar").style.display = "none"; $("fill").style.width = "0"; sync();
+};
+
+$("dl").onclick = async () => {
+  if(!outBlob) return;
+  try{
+    const a = document.createElement("a"); a.href = URL.createObjectURL(outBlob); a.download = outName;
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ $("saved").textContent = "Download failed: " + (e.message || e); }
+};
+
+$("del").onclick = async () => {
+  try{
+    await fetch("/api/delete", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({urls: storedUrls})});
+    storedUrls = []; $("del").hidden = true; $("saved").textContent = "Your stored files were permanently deleted.";
+  }catch(e){ $("saved").textContent = "Couldn't delete right now, they will auto-delete within 7 days."; }
+};
+</script>
+</body>
+</html>
